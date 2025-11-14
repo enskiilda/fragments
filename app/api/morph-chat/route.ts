@@ -47,19 +47,27 @@ export async function POST(req: Request) {
   const modelClient = getModelClient(model, config)
 
   try {
+    const targetFile =
+      currentFragment.files.find((file) => file.is_entry) ||
+      currentFragment.files[0]
+
+    if (!targetFile) {
+      throw new Error('Brak pliku do edycji w aktualnym fragmencie')
+    }
+
     const contextualSystemPrompt = `You are a code editor. Generate a JSON response with exactly these fields:
 
 {
   "commentary": "Explain what changes you are making",
-  "instruction": "One line description of the change", 
+  "instruction": "One line description of the change",
   "edit": "The code changes with // ... existing code ... for unchanged parts",
-  "file_path": "${currentFragment.file_path}"
+  "file_path": "${targetFile.file_path}"
 }
 
-Current file: ${currentFragment.file_path}
+Current file: ${targetFile.file_path}
 Current code:
 \`\`\`
-${currentFragment.code}
+${targetFile.file_content}
 \`\`\`
 
 `
@@ -77,16 +85,20 @@ ${currentFragment.code}
 
     // Apply edits using Morph
     const morphResult = await applyPatch({
-      targetFile: currentFragment.file_path,
+      targetFile: targetFile.file_path,
       instructions: editInstructions.instruction,
-      initialCode: currentFragment.code,
+      initialCode: targetFile.file_content,
       codeEdit: editInstructions.edit,
     })
 
     // Return updated fragment in standard format
     const updatedFragment: FragmentSchema = {
       ...currentFragment,
-      code: morphResult.code,
+      files: currentFragment.files.map((file) =>
+        file.file_path === targetFile.file_path
+          ? { ...file, file_content: morphResult.code }
+          : file,
+      ),
       commentary: editInstructions.commentary,
     }
 

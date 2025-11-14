@@ -25,8 +25,9 @@ import { useLocalStorage } from 'usehooks-ts'
 export default function Home() {
   const [chatInput, setChatInput] = useLocalStorage('chat', '')
   const [files, setFiles] = useState<File[]>([])
+  const templateIds = Object.keys(templates)
   const [selectedTemplate, setSelectedTemplate] = useState<string>(
-    'auto',
+    templateIds[0] ?? '',
   )
   const [languageModel, setLanguageModel] = useLocalStorage<LLMModelConfig>(
     'languageModel',
@@ -63,14 +64,18 @@ export default function Home() {
     (model) => model.id === languageModel.model,
   )
   const currentTemplate =
-    selectedTemplate === 'auto'
-      ? templates
-      : { [selectedTemplate]: templates[selectedTemplate] }
+    selectedTemplate && templates[selectedTemplate]
+      ? { [selectedTemplate]: templates[selectedTemplate] }
+      : templates
   const lastMessage = messages[messages.length - 1]
 
   // Determine which API to use based on morph toggle and existing fragment
   const shouldUseMorph =
-    useMorphApply && fragment && fragment.code && fragment.file_path
+    useMorphApply &&
+    fragment &&
+    Array.isArray(fragment.files) &&
+    fragment.files.length > 0 &&
+    fragment.entry_file_path
   const apiEndpoint = shouldUseMorph ? '/api/morph-chat' : '/api/chat'
 
   const { object, submit, isLoading, stop, error } = useObject({
@@ -119,10 +124,34 @@ export default function Home() {
   useEffect(() => {
     if (object) {
       setFragment(object)
-      const content: Message['content'] = [
-        { type: 'text', text: object.commentary || '' },
-        { type: 'code', text: object.code || '' },
-      ]
+      const content: Message['content'] = []
+
+      if (object.commentary) {
+        content.push({ type: 'text', text: object.commentary })
+      }
+
+      if (
+        object.files &&
+        object.files.length > 0 &&
+        object.files.every((file) => file?.file_path)
+      ) {
+        const formattedCode = object.files
+          .map((file) => {
+            if (!file?.file_path) {
+              return ''
+            }
+
+            const fileContent = file.file_content ?? ''
+            return `// ${file.file_path}\n${fileContent}`
+          })
+          .join('\n\n')
+
+        content.push({ type: 'code', text: formattedCode })
+      }
+
+      if (content.length === 0) {
+        return
+      }
 
       if (!lastMessage || lastMessage.role !== 'assistant') {
         addMessage({
@@ -130,9 +159,7 @@ export default function Home() {
           content,
           object,
         })
-      }
-
-      if (lastMessage && lastMessage.role === 'assistant') {
+      } else {
         setMessage({
           content,
           object,
