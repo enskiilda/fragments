@@ -1,15 +1,5 @@
-import { ExecutionError, Result } from '@e2b/code-interpreter'
-
 type ExecutionResultBase = {
   sbxId: string
-}
-
-export type ExecutionResultInterpreter = ExecutionResultBase & {
-  template: string
-  stdout: string[]
-  stderr: string[]
-  runtimeError?: ExecutionError
-  cellResults: Result[]
 }
 
 export type ExecutionResultWeb = ExecutionResultBase & {
@@ -17,4 +7,10 @@ export type ExecutionResultWeb = ExecutionResultBase & {
   url: string
 }
 
-export type ExecutionResult = ExecutionResultInterpreter | ExecutionResultWeb
+export type ExecutionResult = ExecutionResultWeb
+
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object
+    ? DeepPartial<T[K]>
+    : T[K]
+}

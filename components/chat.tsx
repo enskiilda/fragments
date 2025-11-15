@@ -1,7 +1,6 @@
 import { Message } from '@/lib/messages'
 import { FragmentSchema } from '@/lib/schema'
-import { ExecutionResult } from '@/lib/types'
-import { DeepPartial } from 'ai'
+import { DeepPartial, ExecutionResult } from '@/lib/types'
 import { LoaderIcon, Terminal } from 'lucide-react'
 import { useEffect } from 'react'
 
