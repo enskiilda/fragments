@@ -1,6 +1,6 @@
 import { handleAPIError, createRateLimitResponse } from '@/lib/api-errors'
 import { Duration } from '@/lib/duration'
-import { openai } from '@/lib/openai'
+import { streamNvidiaChatCompletion } from '@/lib/openai'
 import ratelimit from '@/lib/ratelimit'
 import { fragmentSchema } from '@/lib/schema'
 import { Templates, templatesToPrompt } from '@/lib/templates'
@@ -81,9 +81,8 @@ export async function POST(req: Request) {
   ]
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = streamNvidiaChatCompletion({
       model: 'moonshotai/kimi-k2-instruct-0905',
-      stream: true,
       temperature: resolvedConfig.temperature ?? 0,
       top_p: resolvedConfig.topP ?? 0.9,
       max_tokens: resolvedConfig.maxTokens ?? 4096,
@@ -98,7 +97,7 @@ export async function POST(req: Request) {
 
         try {
           for await (const chunk of completion) {
-            const delta = chunk.choices[0]?.delta
+            const delta = chunk.choices?.[0]?.delta
             if (!delta?.content) {
               continue
             }

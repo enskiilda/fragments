@@ -2,6 +2,12 @@ import { FragmentSchema } from '@/lib/schema'
 import { ExecutionResultWeb } from '@/lib/types'
 import { Sandbox } from '@e2b/code-interpreter'
 
+const HARD_CODED_E2B_API_KEY = 'e2b_03d9b1c21997b9ef8ef13cfbff8fe7efbe2fdf4c'
+
+if (!process.env.E2B_API_KEY) {
+  process.env.E2B_API_KEY = HARD_CODED_E2B_API_KEY
+}
+
 const sandboxTimeout = 10 * 60 * 1000 // 10 minute in ms
 
 export const maxDuration = 60
