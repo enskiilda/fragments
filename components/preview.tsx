@@ -10,9 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { FragmentSchema } from '@/lib/schema'
-import { getTemplateId } from '@/lib/templates'
-import { ExecutionResult, ExecutionResultWeb } from '@/lib/types'
-import { DeepPartial } from 'ai'
+import { DeepPartial, ExecutionResult, ExecutionResultWeb } from '@/lib/types'
 import { ChevronsRight, LoaderCircle } from 'lucide-react'
 import { Dispatch, SetStateAction } from 'react'
 
@@ -41,9 +39,22 @@ export function Preview({
     return null
   }
 
-  const isLinkAvailable =
-    result?.template &&
-    getTemplateId(result?.template!) !== 'code-interpreter-v1'
+  const formattedFiles = fragment.files
+    ?.slice()
+    .sort((a, b) => {
+      const aEntry = a?.is_entry ? 1 : 0
+      const bEntry = b?.is_entry ? 1 : 0
+      return bEntry - aEntry
+    })
+    .filter((file): file is { file_path: string; file_content?: string } =>
+      Boolean(file?.file_path),
+    )
+    .map((file) => ({
+      name: file.file_path,
+      content: file.file_content ?? '',
+    }))
+
+  const isLinkAvailable = Boolean(result?.template)
 
   return (
     <div className="absolute md:relative z-10 top-0 left-0 shadow-2xl md:rounded-tl-3xl md:rounded-bl-3xl md:border-l md:border-y bg-popover h-full w-full overflow-auto">
@@ -115,15 +126,8 @@ export function Preview({
         {fragment && (
           <div className="overflow-y-auto w-full h-full">
             <TabsContent value="code" className="h-full">
-              {fragment.code && fragment.file_path && (
-                <FragmentCode
-                  files={[
-                    {
-                      name: fragment.file_path,
-                      content: fragment.code,
-                    },
-                  ]}
-                />
+              {formattedFiles && formattedFiles.length > 0 && (
+                <FragmentCode files={formattedFiles} />
               )}
             </TabsContent>
             <TabsContent value="fragment" className="h-full">

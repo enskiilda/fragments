@@ -1,6 +1,6 @@
+import { DeepPartial } from './types'
 import { FragmentSchema } from './schema'
 import { ExecutionResult } from './types'
-import { DeepPartial } from 'ai'
 
 export type MessageText = {
   type: 'text'
@@ -24,19 +24,23 @@ export type Message = {
   result?: ExecutionResult
 }
 
-export function toAISDKMessages(messages: Message[]) {
+export function toRequestMessages(messages: Message[]) {
   return messages.map((message) => ({
     role: message.role,
-    content: message.content.map((content) => {
-      if (content.type === 'code') {
-        return {
-          type: 'text',
-          text: content.text,
+    content: message.content
+      .map((content) => {
+        if (content.type === 'text' || content.type === 'code') {
+          return content.text
         }
-      }
 
-      return content
-    }),
+        if (content.type === 'image') {
+          return `![image](${content.image})`
+        }
+
+        return ''
+      })
+      .filter(Boolean)
+      .join('\n\n'),
   }))
 }
 

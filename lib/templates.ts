@@ -7,23 +7,15 @@ export function getTemplateId(id: string) {
   return id.replace(/-dev$/, '')
 }
 
-const templates = {
-  'code-interpreter-v1': {
-    name: 'Python data analyst',
-    lib: [
-      'python',
-      'jupyter',
-      'numpy',
-      'pandas',
-      'matplotlib',
-      'seaborn',
-      'plotly',
-    ],
-    file: 'script.py',
-    instructions:
-      'Runs code as a Jupyter notebook cell. Strong data analysis angle. Can use complex visualisation to explain results.',
-    port: null,
-  },
+type TemplateDefinition = {
+  name: string
+  lib: string[]
+  entry: string
+  instructions: string
+  port: number | null
+}
+
+const templates: Record<string, TemplateDefinition> = {
   [getTemplateIdSuffix('nextjs-developer')]: {
     name: 'Next.js developer',
     lib: [
@@ -36,49 +28,10 @@ const templates = {
       'tailwindcss',
       'shadcn',
     ],
-    file: 'pages/index.tsx',
+    entry: 'pages/index.tsx',
     instructions:
-      'A Next.js 13+ app that reloads automatically. Using the pages router.',
+      'Pełna aplikacja Next.js 13+ korzystająca z routera Pages. Zawsze generuj kompletny projekt gotowy do uruchomienia, twórz dowolną liczbę plików i folderów (np. komponenty, style, utils).',
     port: 3000,
-  },
-  [getTemplateIdSuffix('vue-developer')]: {
-    name: 'Vue.js developer',
-    lib: ['vue@latest', 'nuxt@3.13.0', 'tailwindcss'],
-    file: 'app/app.vue',
-    instructions:
-      'A Vue.js 3+ app that reloads automatically. Only when asked specifically for a Vue app.',
-    port: 3000,
-  },
-  [getTemplateIdSuffix('streamlit-developer')]: {
-    name: 'Streamlit developer',
-    lib: [
-      'streamlit',
-      'pandas',
-      'numpy',
-      'matplotlib',
-      'requests',
-      'seaborn',
-      'plotly',
-    ],
-    file: 'app.py',
-    instructions: 'A streamlit app that reloads automatically.',
-    port: 8501,
-  },
-  [getTemplateIdSuffix('gradio-developer')]: {
-    name: 'Gradio developer',
-    lib: [
-      'gradio',
-      'pandas',
-      'numpy',
-      'matplotlib',
-      'requests',
-      'seaborn',
-      'plotly',
-    ],
-    file: 'app.py',
-    instructions:
-      'A gradio app. Gradio Blocks/Interface should be called demo.',
-    port: 7860,
   },
 }
 
@@ -89,7 +42,7 @@ export function templatesToPrompt(templates: Templates) {
   return `${Object.entries(templates)
     .map(
       ([id, t], index) =>
-        `${index + 1}. ${id}: "${t.instructions}". File: ${t.file || 'none'}. Dependencies installed: ${t.lib.join(', ')}. Port: ${t.port || 'none'}.`,
+        `${index + 1}. ${id}: "${t.instructions}". entry_file_path ustaw na ${t.entry}. Zainstalowane zależności: ${t.lib.join(', ')}. Port: ${t.port || 'brak'}.`,
     )
     .join('\n')}`
 }
