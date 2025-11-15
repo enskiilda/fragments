@@ -10,8 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { FragmentSchema } from '@/lib/schema'
-import { ExecutionResult, ExecutionResultWeb } from '@/lib/types'
-import { DeepPartial } from 'ai'
+import { DeepPartial, ExecutionResult, ExecutionResultWeb } from '@/lib/types'
 import { ChevronsRight, LoaderCircle } from 'lucide-react'
 import { Dispatch, SetStateAction } from 'react'
 
